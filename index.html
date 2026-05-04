@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NeoPixel Planner. Place, sequence, export.</title>
+<meta name="description" content="A web tool to plan NeoPixel LED layouts and animations, then export Arduino code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Step indicator (always visible) -->
+<header class="topbar" aria-label="Progress">
+  <button class="topbar-back" id="back-btn" aria-label="Previous step" hidden>←</button>
+  <ol class="dots" role="list" aria-label="Step indicator">
+    <li class="dot" data-step="1"></li>
+    <li class="dot" data-step="2"></li>
+    <li class="dot" data-step="3"></li>
+    <li class="dot" data-step="4"></li>
+  </ol>
+  <button class="topbar-reset" id="reset-btn" aria-label="Reset everything">Reset</button>
+</header>
+
+<main class="screen">
+
+  <!-- ============= STEP 1: PLACE ============= -->
+  <section class="step" data-step="1" aria-label="Step 1, Place">
+    <div class="panel-text">
+      <p class="caption">Part 1 · Place</p>
+      <h1 class="title">Tap to place your <em>lights</em>.</h1>
+      <p class="lede">Each tap drops one NeoPixel onto the canvas. Drag a placed light to reposition. The order you place them becomes the strip's wiring index. 0, 1, 2...</p>
+      <div class="panel-spacer"></div>
+      <div class="row">
+        <button class="btn btn-ghost" id="undo-btn" type="button">Undo last</button>
+        <button class="btn btn-ghost" id="clear-btn" type="button">Clear all</button>
+      </div>
+      <button class="btn btn-primary" id="next-1" type="button">Next: Sequence</button>
+    </div>
+    <div class="panel-work">
+      <div class="canvas-wrap">
+        <canvas id="canvas-place" aria-label="Placement canvas. Tap to add LEDs."></canvas>
+        <div class="canvas-meta">
+          <span id="led-count">0</span> lights placed
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= STEP 2: SEQUENCE ============= -->
+  <section class="step" data-step="2" aria-label="Step 2, Sequence">
+    <div class="panel-text">
+      <p class="caption">Part 2 · Sequence</p>
+      <h1 class="title">Tap them in <em>order</em>.</h1>
+      <p class="lede">The click order is how the animation walks through the lights. Tap an LED to add it to the sequence. Tap again to remove. Or hit "Use placement order" to fill it in 0, 1, 2...</p>
+      <div class="panel-spacer"></div>
+      <div class="row">
+        <button class="btn btn-ghost" id="seq-fill-btn" type="button">Use placement order</button>
+        <button class="btn btn-ghost" id="seq-clear-btn" type="button">Clear sequence</button>
+      </div>
+      <button class="btn btn-primary" id="next-2" type="button">Next: Style</button>
+    </div>
+    <div class="panel-work">
+      <div class="canvas-wrap">
+        <canvas id="canvas-seq" aria-label="Sequence canvas. Tap LEDs in order."></canvas>
+        <div class="canvas-meta">
+          <span id="seq-count">0</span> in sequence
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= STEP 3: STYLE ============= -->
+  <section class="step" data-step="3" aria-label="Step 3, Style">
+    <div class="panel-text">
+      <p class="caption">Part 3 · Style</p>
+      <h1 class="title">Make them <em>flow</em>.</h1>
+      <p class="lede">Tune speed, color, and trail length. The preview runs the same algorithm the Arduino code will.</p>
+      <details class="presets">
+        <summary>Or pick a preset</summary>
+        <div class="preset-list" id="preset-list"></div>
+      </details>
+      <div class="panel-spacer"></div>
+      <button class="btn btn-primary" id="next-3" type="button">Next: Export</button>
+    </div>
+    <div class="panel-work">
+      <div class="preview-wrap">
+        <canvas id="canvas-preview" aria-label="Live animation preview"></canvas>
+        <button class="preview-toggle" id="preview-toggle" type="button" aria-label="Toggle preview playback">Pause</button>
+      </div>
+      <div class="controls" id="style-controls">
+        <!-- Filled by app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= STEP 4: EXPORT ============= -->
+  <section class="step" data-step="4" aria-label="Step 4, Export">
+    <div class="panel-text">
+      <p class="caption">Part 4 · Export</p>
+      <h1 class="title">Get your <em>code</em>.</h1>
+      <p class="lede">Paste this into the Arduino IDE. Make sure the <code>Adafruit_NeoPixel</code> library is installed. Adjust <code>LED_PIN</code> to match your wiring.</p>
+      <div class="export-options">
+        <label class="field">
+          <span class="field-label">Pin</span>
+          <input type="number" id="export-pin" min="0" max="40" value="6">
+        </label>
+        <label class="field">
+          <span class="field-label">LED type</span>
+          <select id="export-type">
+            <option value="NEO_GRB + NEO_KHZ800">WS2812B (GRB, 800kHz)</option>
+            <option value="NEO_GRBW + NEO_KHZ800">SK6812 RGBW</option>
+            <option value="NEO_RGB + NEO_KHZ800">WS2811 (RGB, 800kHz)</option>
+            <option value="NEO_RGB + NEO_KHZ400">WS2811 (RGB, 400kHz)</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <button class="btn btn-ghost" id="copy-btn" type="button">Copy code</button>
+        <button class="btn btn-ghost" id="download-btn" type="button">Download .ino</button>
+      </div>
+      <a class="docs-link" href="https://github.com/ineslucas/NeoPixelAnimator/blob/main/docs/ARDUINO_SETUP.md" target="_blank" rel="noopener">How to wire & flash →</a>
+      <div class="panel-spacer"></div>
+      <button class="btn btn-primary" id="back-to-style" type="button">← Back to Style</button>
+    </div>
+    <div class="panel-work">
+      <pre class="code"><code id="export-code"></code></pre>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>Open source · <a href="https://github.com/ineslucas/NeoPixelAnimator" target="_blank" rel="noopener">GitHub</a></span>
+  <span id="autosave">Saved</span>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,109 +1,154 @@
-# NeoPixel Animation and Positioning Library
+# NeoPixel Planner
 
-I'm not building an animation library - i'm building a dashboard visualizer and planner, which will then output NeoPixel library code according to the light sequence you've created through the Web Dashboard.
+[github.com/ineslucas/NeoPixelAnimator](https://github.com/ineslucas/NeoPixelAnimator)
 
-It is a (library?) built on top of NeoPixel C++ library or a feature that generates code to copy paste into your original Arduino IDE C++ sketch.
+NeoPixel Planner is a dashboard visualizer and planner that outputs NeoPixel library code based on the light sequence you've designed in the browser.
 
-### What this solves
+Sketch where each light goes on a canvas. Click them in the order you want the animation to walk through. Tune speed, color, and trail. Copy the generated Arduino sketch into your IDE and flash it.
 
-Planning LED animations has been a very manual process. Afterwards, there still needs to be a step of 
-An interesting outcome is users being able customize their NeoPixels colors and animation from network. In the future, this could be an alternative Connected Device project.
+It's a layer of planning that sits *before* you write any C++. Built on top of (and outputting code for) the [Adafruit NeoPixel library](https://github.com/adafruit/Adafruit_NeoPixel).
 
----
+![planner page](image.png)
 
-## Architecture & Settings
+![alt text](image-1.png)
 
-Open Source Tiny tool → web tool? Library? ~~API call?~~
+![alt text](image-2.png)
 
-→ using Browser Native Canvas API only + Vanilla JS / CSS / HTML. No libraries.
+## What this solves
 
-→ Lightweight to be processed on a microcontroller web server. Very simple, even for web browser.
+Planning LED animations has been a very manual process. You count LEDs, figure out which strip index goes where, sketch on paper or in your head, then translate it into nested for-loops. Lots of room for off-by-one errors. Lots of "wait, was that LED 7 or 8?" moments.
 
-→ Responsive by nature - mobile compatible.
+This is not a C++ animation library.
 
-> 🚨 Vanilla CSS → ***Storybook*** to prototype components.
+This tool lets you:
 
----
+1. Visually place lights on a canvas at the rough positions they'll occupy in real life.
+2. Define the animation order by clicking them.
+3. Watch the animation play in the browser before flashing anything.
+4. Get clean Arduino code without manually thinking about indices.
 
-## User Actions
-### Get Started: User action 1
+It's an MVP. Future direction: expose this UI over a microcontroller's WiFi access point, so you can adjust animations from your phone with no laptop / IDE in the loop. That would be a Connected Device project.
 
-Web UI — import NeoPixel type with scaled size to dot, fetch, adjust dependency, docs → pts
+## Inspiration
 
-### Positioning Flow: User action 2
+- [WLED Calculator](https://wled-calculator.github.io/) by Quindor and the WLED community. Same energy of "small focused web tool that does one thing well for LED tinkerers." The shape of "input some parameters, get usable output" is what I went for.
+- [Adafruit NeoPixel library](https://github.com/adafruit/Adafruit_NeoPixel). The actual library this generates code for. Their classic example sketches (chase, theater chase, rainbow) seeded the built-in style presets.
 
-① Open canvas
+## Stack & why
 
-<table>
-<tr>
-<td width="50%" valign="top">
+Vanilla everything. Browser-native Canvas API, plain CSS, ES modules, no libraries.
 
-#### To start
+Reasons:
 
-1. Select canvas dimensions (screenshot Motion)
-2. Button: [ Start positioning ]
-3. Click on canvas to position NeoPixel LEDs.
-   1. NeoPixel LED: One point or circle on the canvas that can change colors.
-4. Button: [ End positioning / finish arranging ]
+- Lightweight to eventually run on a microcontroller web server. Very simple, even for the web browser.
+- No build step. No `npm install`. Open the folder, serve it, done.
+- Responsive by nature, mobile-first. The canvas works on a phone.
+- Anyone can read it and remix it.
 
-</td>
-<td width="50%" valign="top">
+## Quickstart
 
-#### Options while feature is open for changes (dashboard)
+### 1. Run it
 
-1. Drag to move existing NeoPixel LEDs.
+The simplest way is to open `index.html` in any modern browser.
 
-</td>
-</tr>
-</table>
+ES modules need to be served over `http://`, not opened from the filesystem. From the project folder:
 
-### Start sequence / animations: user action 3
+```bash
+python3 -m http.server 8080
+# or
+npx serve
+```
 
-<table>
-<tr>
-<td width="50%" valign="top">
+Then open `http://localhost:8080`.
 
-② Button: [ "Start Animation Pattern Sequence" ]
+### 2. Plan an animation
 
-• Click on each NeoPixel LED. The order with which you click is what determines the order in which they
-Button: [ "End Animation Pattern Sequence" ]
+The tool walks you through four steps:
 
-> 🚨 Have set model patterns too.
-> Pull from Adafruit.
+1. **Place.** Tap on the canvas to drop LEDs. Drag to reposition. Each placement gets the next strip wiring index (0, 1, 2, ...).
+2. **Sequence.** Tap LEDs in the order you want the animation to fire. Tap again to remove. Or hit "Use placement order" to fill it 0, 1, 2, ... in placement order.
+3. **Style.** Choose color, speed, brightness, trail length. Live preview runs the same algorithm the Arduino code will.
+4. **Export.** Pick the data pin and LED type, copy the generated sketch, paste into Arduino IDE, flash.
 
-</td>
-<td width="50%" valign="top">
+The work auto-saves to the browser. Closing and reopening picks up where you left off.
 
-#### Options while feature is open for changes (dashboard)
+### 3. Flash it
 
-**Toggles:**
-- Size
-- Color
-  > 🚨 ? Different colors between LEDs and very smooth hue transitions
-- Brightness (select groups can have different brightness)
-- Speed
-- ms lenght of interval
+See [docs/ARDUINO_SETUP.md](docs/ARDUINO_SETUP.md) for wiring, library install, and troubleshooting.
 
-V2:
-- NeoPixel type (?) V2
+## Deploy it
 
-</td>
-</tr>
-</table>
+It's a static site. No backend, no env vars.
 
-### Last step: Export Code / Library Function to be pasted and tested directly within
+- **Vercel.** Drag the project folder onto [vercel.com/new](https://vercel.com/new) and click Deploy.
+- **GitHub Pages.** Push to a repo, enable Pages from the repo's Settings.
+- **Netlify.** Drag the folder at [app.netlify.com/drop](https://app.netlify.com/drop).
 
-• Expert code or library function
+## How the animation works
 
-### User actions always available (especially during editing animation)
+The planner generates one well-known pattern: a *chase with trail*.
 
-③ "RUN" the play animation.
-→ Auto save values each time. To browser cache?
+- A "head" position walks forward through your sequence at the chosen interval.
+- Behind the head, a configurable number of LEDs fade out (a comet tail).
+- All other LEDs are off.
 
-### Exporting animation: Final step
+Trail of 0 = a single dot hopping. Trail = sequence length = a full gradient that always fills the strip and rotates.
 
-**Goal:** Take this UI → expose to user via network == Access point.
+Color modes:
 
-③ Button: [ Process Arduino C++ code with AdafruitNeoPixel library ]
-Button: [ Export Arduino code in full to test right away ]
-Button: [ Copy components Arduino code in full to test right away ]
+- **Single.** One color for the whole animation.
+- **Rainbow.** Hue cycles 0 → 360° across the sequence.
+
+The browser preview runs the exact same algorithm as the exported Arduino code, so what you see is what you get on real hardware.
+
+## Project layout
+
+```
+neopixel-planner/
+├── index.html              # Single page, four step sections
+├── styles.css              # Vanilla CSS, mobile-first
+├── app.js                  # Glue: step routing + button wiring
+├── modules/
+│   ├── state.js            # Tiny pub/sub store, single source of truth
+│   ├── storage.js          # Debounced localStorage persistence
+│   ├── canvas.js           # Drawing + tap-to-place + drag-to-move
+│   ├── sequence.js         # Sequence helpers (fill / clear / reverse)
+│   ├── animation.js        # Live preview engine
+│   ├── presets.js          # Built-in style presets
+│   └── export.js           # Arduino code generator
+└── docs/
+    ├── ARDUINO_SETUP.md     # Wiring & flashing
+    ├── ADD_PRESET.md        # How to add your own preset
+    └── LIBRARY_REFERENCE.md # Module-by-module API reference
+```
+
+Each module is small enough to read in one sitting. Comments explain *why*, not *what*.
+
+## Extend it
+
+- **Read the API.** [docs/LIBRARY_REFERENCE.md](docs/LIBRARY_REFERENCE.md) lists every exported function across the modules with signatures and usage notes.
+- **Add a preset.** See [docs/ADD_PRESET.md](docs/ADD_PRESET.md). One entry in `modules/presets.js`.
+- **Add an effect.** Anything that's "a different way of computing color or position from the sequence" goes in two places: `colorForStep()` in `animation.js` (for the preview) and the matching branch in `export.js` (for the Arduino output). Keep them in lockstep, or the preview lies.
+- **Different microcontroller.** The export template lives in `modules/export.js`. Output format is the Adafruit NeoPixel API. Swap the template for FastLED or NeoPixelBus if you need.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## What's not in v1
+
+Cuts I made to keep the MVP shippable. Roadmap candidates:
+
+- **WiFi config / access-point mode.** And changing LED color elements on the fly. Where tool runs on the device, and you design from the web server, available on your phone.
+
+![alt text](IMG_4042.jpg) ![alt text](IMG_4041.jpg)
+
+
+- **Per-LED brightness groups.** Was in the original spec but adds significant UI weight. Brightness is currently global.
+- **Per-step color picker.** Single + Rainbow cover most cases. The data model already supports per-step (see `state.style.perStepColors`), there's just no picker UI yet.
+- **Pattern library.** Save and recall multiple animations on one device. Switch via button or network.
+- **Importing layouts.** Paste an SVG, drag in an image, place LEDs along the outline.
+- **Multiple strips on multiple pins.**
+- **More effects!** Breathing, twinkle, fire, ping-pong.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

@@ -1,0 +1,656 @@
+/* =========================================================
+   NeoPixel Planner. Stylesheet.
+   Visual direction: soft pastel gradient background, generous
+   whitespace, typographic emphasis using bold (no italics).
+   Mobile-first, with a dashboard-style 2-column layout on
+   desktop so all controls fit on a MacBook screen at full
+   browser scale.
+   ========================================================= */
+
+:root {
+  /* Palette */
+  --bg-top:    #dfeaf3;     /* pale blue, top of gradient */
+  --bg-bot:    #f6f6f3;     /* near white, bottom */
+  --paper:     #ffffff;
+  --ink:       #0e0f12;
+  --ink-soft:  #44464d;
+  --muted:     #7d808a;
+  --line:      #d8dadf;
+  --accent:    #691139;     /* deep wine, used sparingly */
+  --warm:      #ff8c42;     /* trail second color */
+
+  /* Typography */
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Layout */
+  --maxw: 720px;
+  --pad:  clamp(20px, 5vw, 40px);
+  --radius: 14px;
+}
+
+/* ========== Reset ========== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+button { font: inherit; cursor: pointer; }
+input, select, textarea { font: inherit; }
+
+html {
+  background:
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bot) 60%) fixed;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== Top progress bar ========== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px var(--pad) 10px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: linear-gradient(180deg, rgba(223,234,243,0.85) 0%, rgba(223,234,243,0) 100%);
+}
+.topbar-back, .topbar-reset {
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.topbar-back:hover, .topbar-reset:hover {
+  background: rgba(14,15,18,0.06);
+  color: var(--ink);
+}
+.topbar-back { font-size: 1.1rem; line-height: 1; }
+.dots {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(14,15,18,0.18);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.dot.active {
+  background: var(--ink);
+  transform: scale(1.2);
+}
+.dot.done {
+  background: var(--ink-soft);
+}
+
+/* ========== Screen + steps (mobile baseline) ========== */
+.screen {
+  flex: 1;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 12px var(--pad) 24px;
+  position: relative;
+}
+
+.step {
+  display: none;
+  animation: step-in 0.32s cubic-bezier(0.2, 0.6, 0.3, 1) both;
+}
+.step.active { display: block; }
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile: text panel and work panel stack vertically. */
+.panel-text, .panel-work {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.panel-text { margin-bottom: 18px; }
+
+/* Spacer pushes buttons to the bottom of the text panel on desktop.
+   On mobile it collapses to nothing so the layout reads top-down. */
+.panel-spacer { flex: 0; }
+
+/* ========== Typography blocks ========== */
+.caption {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin: 0;
+  text-align: center;
+}
+.title {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: clamp(2rem, 7vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-align: left;
+  margin: 0;
+  color: var(--ink);
+  max-width: 14ch;
+}
+/* Emphasized word in titles. Bold, same family. No italics. */
+.title em {
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--accent);
+}
+.lede {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 50ch;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 1px 6px;
+  background: rgba(14,15,18,0.06);
+  border-radius: 4px;
+}
+
+/* ========== Canvas ========== */
+.canvas-wrap {
+  position: relative;
+  width: 100%;
+  background: var(--paper);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(14,15,18,0.04), 0 8px 24px rgba(14,15,18,0.04);
+  aspect-ratio: 1 / 1;
+  max-height: 60vh;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* Disable browser pan/zoom on canvas */
+  cursor: crosshair;
+}
+.canvas-wrap[data-mode="sequence"] canvas { cursor: pointer; }
+.canvas-wrap[data-mode="dragging"] canvas { cursor: grabbing; }
+.canvas-meta {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: rgba(255,255,255,0.85);
+  padding: 4px 9px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+/* Preview canvas. Same as canvas but with dark backdrop so LEDs glow. */
+.preview-wrap {
+  position: relative;
+  width: 100%;
+  background: #0e0f12;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  max-height: 50vh;
+  box-shadow: 0 1px 2px rgba(14,15,18,0.06), 0 12px 30px rgba(14,15,18,0.12);
+}
+.preview-wrap canvas { cursor: default; }
+.preview-toggle {
+  position: absolute;
+  top: 10px; right: 10px;
+  border: 0;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.15s ease;
+}
+.preview-toggle:hover { background: rgba(255,255,255,0.2); }
+
+/* ========== Buttons ========== */
+.btn {
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.98rem;
+  letter-spacing: -0.005em;
+  text-align: center;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1.05rem;
+}
+.btn-primary:hover { background: #1d1f24; }
+.btn-primary:active { transform: scale(0.99); }
+.btn-primary:disabled {
+  background: var(--ink-soft);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: rgba(14,15,18,0.18);
+  color: var(--ink);
+  flex: 1;
+  padding: 11px 14px;
+  font-size: 0.92rem;
+}
+.btn-ghost:hover {
+  background: rgba(14,15,18,0.05);
+  border-color: rgba(14,15,18,0.3);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ========== Controls (sliders + color) ========== */
+.controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.control {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.control-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+.control-label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.control-value {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  height: 2px; background: rgba(14,15,18,0.2); border-radius: 2px;
+}
+input[type=range]::-moz-range-track {
+  height: 2px; background: rgba(14,15,18,0.2); border-radius: 2px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  height: 18px; width: 18px;
+  background: var(--ink);
+  border: 0; border-radius: 50%;
+  margin-top: -8px;
+}
+input[type=range]::-moz-range-thumb {
+  height: 18px; width: 18px;
+  background: var(--ink);
+  border: 0; border-radius: 50%;
+}
+input[type=range]:focus { outline: none; }
+
+/* Color mode toggle (segmented) */
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  background: rgba(14,15,18,0.06);
+  padding: 3px;
+  border-radius: 10px;
+}
+.segmented button {
+  border: 0;
+  background: transparent;
+  padding: 8px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.segmented button.active {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(14,15,18,0.08);
+}
+
+input[type=color] {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+  background: var(--paper);
+  cursor: pointer;
+}
+
+/* ========== Presets ========== */
+.presets {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.presets summary {
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.presets summary::after {
+  content: "+";
+  font-size: 1.2rem;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.presets[open] summary::after { transform: rotate(45deg); }
+.presets summary::-webkit-details-marker { display: none; }
+.preset-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  padding: 0 12px 12px;
+}
+.preset-btn {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  color: var(--ink);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.preset-btn:hover { border-color: var(--ink); }
+.preset-btn small {
+  display: block;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
+
+/* ========== Export step ========== */
+.export-options {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.field input, .field select {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--ink);
+}
+.field input:focus, .field select:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.code {
+  background: #0e0f12;
+  color: #e8e8e8;
+  border-radius: var(--radius);
+  padding: 16px;
+  overflow-x: auto;
+  max-height: 50vh;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  white-space: pre;
+  margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+.code::-webkit-scrollbar { width: 6px; height: 6px; }
+.code::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 3px; }
+
+.docs-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+.docs-link:hover { color: var(--ink); }
+
+/* ========== Footer ========== */
+.footer {
+  padding: 12px var(--pad) 18px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+#autosave {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+}
+#autosave.saving { color: var(--accent); }
+
+/* ========== Tablet refinement ========== */
+@media (min-width: 720px) and (max-width: 1023px) {
+  .screen { padding-top: 24px; }
+  .step { gap: 22px; }
+  .canvas-wrap { aspect-ratio: 4 / 3; max-height: 60vh; }
+  .preview-wrap { aspect-ratio: 4 / 3; max-height: 50vh; }
+}
+
+/* =========================================================
+   DESKTOP LAYOUT (>=1024px).
+   Goal: every step fits on a MacBook full-screen browser
+   without scrolling. Two-column dashboard layout: text panel
+   on the left (caption, title, secondary buttons, primary
+   button), work panel on the right (canvas, preview,
+   controls, code).
+   ========================================================= */
+@media (min-width: 1024px) {
+  :root { --maxw: 1280px; }
+
+  .screen {
+    padding: 16px var(--pad) 16px;
+  }
+
+  .step.active {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    grid-template-rows: 1fr;
+    gap: 36px;
+    /* Fill viewport minus topbar + footer + screen vertical padding. */
+    height: calc(100vh - 140px);
+    height: calc(100dvh - 140px);
+    align-items: stretch;
+  }
+
+  .panel-text {
+    margin-bottom: 0;
+    height: 100%;
+    gap: 14px;
+    min-height: 0;
+  }
+  .panel-text .caption { text-align: left; margin-bottom: 0; }
+  .panel-text .title {
+    font-size: 2.4rem;
+    line-height: 1.02;
+    max-width: 100%;
+  }
+  .panel-text .lede {
+    font-size: 0.92rem;
+    max-width: 100%;
+  }
+  /* The spacer eats remaining vertical space, pushing the buttons to
+     the bottom of the panel. */
+  .panel-spacer { flex: 1 1 auto; }
+
+  .panel-work {
+    height: 100%;
+    gap: 14px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ---- Per-step work panel sizing ---- */
+
+  /* Steps 1 & 2: canvas fills the work panel. */
+  .step[data-step="1"] .canvas-wrap,
+  .step[data-step="2"] .canvas-wrap {
+    aspect-ratio: auto;
+    flex: 1 1 auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+  }
+
+  /* Step 3: preview at fixed height, controls fill the rest. */
+  .step[data-step="3"] .preview-wrap {
+    aspect-ratio: auto;
+    flex: 0 0 auto;
+    height: 280px;
+    max-height: 280px;
+  }
+  .step[data-step="3"] .controls {
+    flex: 1 1 0;
+    min-height: 0;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    overflow-y: auto;
+    align-content: start;
+    padding-right: 4px; /* space for the scrollbar */
+  }
+  .step[data-step="3"] .controls .control:last-child {
+    grid-column: span 2;
+  }
+
+  /* Step 4: code panel takes full work-panel height. */
+  .step[data-step="4"] .code {
+    flex: 1 1 auto;
+    max-height: none;
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* Tighter text-panel content on desktop. */
+  .panel-text .row { gap: 10px; }
+}
+
+/* On extra-tall windows, give controls more breathing room. */
+@media (min-width: 1024px) and (min-height: 900px) {
+  .step[data-step="3"] .preview-wrap {
+    height: 360px;
+    max-height: 360px;
+  }
+}
+
+/* On shorter windows (typical 13" MacBook full screen), shrink the
+   preview and tighten the slider controls so everything fits without
+   scrolling. */
+@media (min-width: 1024px) and (max-height: 800px) {
+  .step[data-step="3"] .preview-wrap {
+    height: 240px;
+    max-height: 240px;
+  }
+  .step[data-step="3"] .control {
+    padding: 10px 14px;
+  }
+  .step[data-step="3"] .control-head {
+    margin-bottom: 4px;
+  }
+}
