@@ -1,8 +1,6 @@
-# NeoPixel Planner
+# NeoPixel Planner+Animator
 
-[github.com/ineslucas/NeoPixelAnimator](https://github.com/ineslucas/NeoPixelAnimator)
-
-NeoPixel Planner is a dashboard visualizer and planner that outputs NeoPixel library code based on the light sequence you've designed in the browser.
+A dashboard visualizer and planner that outputs NeoPixel library code based on the light sequence you've designed in the browser.
 
 Sketch where each light goes on a canvas. Click them in the order you want the animation to walk through. Tune speed, color, and trail. Copy the generated Arduino sketch into your IDE and flash it.
 
